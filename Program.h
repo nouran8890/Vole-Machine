@@ -11,10 +11,17 @@
 #include <iomanip>
 #include <unordered_map>
 #include <bitset>
-
+#include <vector>
+#include <cmath>
 
 using namespace std;
 
+class Screen {
+public:
+    vector <string> screen;
+    void printScreenHex();
+    void printScreenASCI();
+};
 struct Instruction {
     char opcode;
     int regAddr;
@@ -22,19 +29,17 @@ struct Instruction {
     int operand2;
     int address;
 };
-string decimalToBinary(int decimal);
-string binaryAdd(const string& a, const string& b);
-int binaryToDecimal(string& binStr);
+
 
 class Memory {
 private:
-    std::string memory[256];
+    string memory[256];
 
 public:
     Memory();
     std::string getCell(int index);
+    void loadFromFile(const std::string& filename);
     void setCell(int index, const std::string& val);
-    void loadFromFile(const std::string& fileName);
     void printMemory();
 
 private:
@@ -55,19 +60,33 @@ public:
 
 class ALU {
 public:
+
+    string binaryAdd(string a, string b);
+    string twosComplement(string binNum);
+
     void add5(Instruction& ir, Register& r);
+
+
+    string fracToBinary(float fractionalPart, int precision = 10);
+    string floatToHexWithBias(float value, int bias = 4);
+    double doubleBinaryToDecimal(const string& binary);
+    double HexToDouble(string hexString);
+    
     void add6(Instruction& ir, Register& r);
 
 };
+
+class CPU;
 
 class CU {
 private:
     bool running = true;
 public:
-    void load2(const Instruction& ir, Register& r);
-    void store3(Instruction& ir, Memory& m, Register& r);
+    void load1(const Instruction& ir, Register& r, Memory& m);
+    void load2(const Instruction& ir, Register& r, Memory& m);
+    void store3(Instruction& ir, Memory& m, Register& r, Screen& S);
     void move(Instruction& ir, Register& r);
-    void jump(Instruction& ir);
+    void jump(Instruction& ir, Register& r, Memory& m, CPU& cpu);
     void halt();
     bool isRunning() const;
 };
@@ -76,7 +95,6 @@ class CPU {
 private:
     ALU alu;
     CU cu;
-    int progCounter = 0;
     string instructionRegister;
     char char_opcode;
     string memCell;
@@ -86,40 +104,14 @@ private:
 
 
 public:
-
+    int progCounter = 10;
     CPU() : running(true) {};
     Instruction fetch_Decode(Memory& m, Register& r);
-    void execute(Instruction& instr, Register& r, CPU cpu);
-    int hexToDec(const std::string& hexStr);
-    string decToHex(int dec);
-    string hexToBin(string hex);
-    //Instruction cycle(Memory& m, Register& r,CPU cpu);
+    void execute(Instruction& instr, Register& r, CPU cpu, Memory& m, Screen& S);
     bool isRunning() const;
     void stop();
 
 };
 
-class Machine {
-private:
-    CPU processor;
-    Memory memory;
-
-public:
-    void loadProgramFile();
-    void outputState();
-};
-
-class MainUI {
-private:
-    Machine machine;
-    bool enterFileOrInstruction;
-
-public:
-    bool getFileOrInstructions();
-    void DisplayMenu();
-    string inputFileName();
-    string inputInstruction();
-    char inputChoice();
-};
 
 #endif
